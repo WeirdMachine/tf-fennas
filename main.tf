@@ -20,8 +20,9 @@ provider "docker" {
   registry_auth {
     address = "registry.fanya.dev"
     username = "ando"
-    password = var.docker_registry_pw
+    password = var.docker_registry_fanya_pw
   }
+
 }
 
 
@@ -82,14 +83,19 @@ resource "docker_container" "minio" {
     "/data"
   ]
 
+  env = [
+    "MINIO_ACCESS_KEY=${var.minio_access_key}",
+    "MINIO_SECRET_KEY=${var.minio_secret_key}",
+  ]
+
   mounts {
-    target = "/data"
     source = "/mnt/p1/minio"
+    target = "/data"
     type = "bind"
   }
 
   mounts {
-    source = "/opt/services/minio/"
+    source = "/opt/services/minio"
     target = "/root/.minio/"
     type = "bind"
   }
@@ -104,3 +110,4 @@ resource "docker_container" "minio" {
   must_run = true
 
 }
+
