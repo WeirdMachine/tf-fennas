@@ -39,10 +39,12 @@ resource "docker_container" "prometheus" {
   restart = "unless-stopped"
   must_run = true
 
-
 }
 
 #### grafanna #####
+resource "docker_volume" "grafana" {
+  name = "grafana"
+}
 
 resource "docker_image" "grafana" {
   name = "grafana/grafana"
@@ -53,14 +55,15 @@ resource "docker_container" "grafana" {
 
   image = docker_image.grafana.latest
 
-  dns = [
-    "192.168.2.10"
-  ]
-
   labels = {
     "traefik.http.routers.grafana.rule" = "Host(`grafana.ando.arda`)"
     "traefik.http.routers.grafana.tls" = "true"
     "traefik.enable" = "true"
+  }
+
+  volumes {
+    container_path = "/var/lib/grafana"
+    volume_name = docker_volume.grafana.name
   }
 
   networks_advanced {
