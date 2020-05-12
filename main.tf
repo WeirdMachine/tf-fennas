@@ -6,8 +6,6 @@ terraform {
     region = "eu-central-1"
   }
 
-
-
   required_providers {
     docker = "< 2.7.0"
   }

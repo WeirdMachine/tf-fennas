@@ -1,14 +1,29 @@
-#### Terraform for pi networks
+## Terraform for PI
 
 Run:
 `terraform apply -var-file=secrets.tfvars`
 
 
-##### Minio - TODO: move do build server
+### Minio
 
+* TODO: build server
+ 
 Build arm image:
 
 `docker build -t minio-arm -f Dockerfile.arm.release . `
+
+
+##### User
+
+`mc admin user add minio ACCESS_KEY_ID SECRET_ACCESS_KEY`
+
+`mc admin group add minio name user`
+
+`mc admin policy add minio plolicy_name policy.json`
+
+`mc admin policy set minio policy_name group=somegroup`
+
+
 
 ### Docker Provider 
 
