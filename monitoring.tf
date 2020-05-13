@@ -1,8 +1,5 @@
 resource "docker_network" "monitoring" {
-  name = "monitoring"
-  ipam_config {
-    subnet = "173.18.0.0/16"
-  }
+  name = "monitoring_net"
 }
 
 #### prometheus ####
@@ -33,7 +30,6 @@ resource "docker_container" "prometheus" {
 
   networks_advanced {
     name = docker_network.monitoring.name
-    ipv4_address = "173.18.0.10"
   }
 
   networks_advanced {
