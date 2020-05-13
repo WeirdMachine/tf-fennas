@@ -1,5 +1,8 @@
 resource "docker_network" "monitoring" {
   name = "monitoring"
+  ipam_config {
+    subnet = "173.18.0.0/16"
+  }
 }
 
 #### prometheus ####
@@ -23,17 +26,64 @@ resource "docker_container" "prometheus" {
   ]
 
   labels = {
-    "traefik.http.routers.promtheus.rule" = "Host(`promtheus.ando.arda`)"
+    "traefik.http.routers.promtheus.rule" = "Host(`prometheus.ando.arda`)"
     "traefik.http.routers.promtheus.tls" = "true"
     "traefik.enable" = "true"
   }
 
   networks_advanced {
     name = docker_network.monitoring.name
+    ipv4_address = "173.18.0.10"
   }
 
   networks_advanced {
     name = docker_network.traefik_net.name
+  }
+
+  restart = "unless-stopped"
+  must_run = true
+
+}
+
+#### alertmanager ####
+resource "docker_image" "alertmanager" {
+  name = "quay.io/prometheus/alertmanager"
+}
+
+resource "docker_container" "alertmanager" {
+  name = "alertmanager"
+
+  image = docker_image.alertmanager.latest
+
+  mounts {
+    source = "/opt/services/alertmanager/alertmanager.yml"
+    target = "/etc/alertmanager/alertmanager.yml"
+    type = "bind"
+  }
+
+  networks_advanced {
+    name = docker_network.monitoring.name
+  }
+
+  restart = "unless-stopped"
+  must_run = true
+
+}
+#### sachet ####
+resource "docker_container" "sachet" {
+  name = "sachet"
+
+  image = "sachet-arm"
+
+  mounts {
+    source = "/opt/services/sachet/config.yaml"
+    target = "/etc/sachet/config.yaml"
+    type = "bind"
+    read_only = true
+  }
+
+  networks_advanced {
+    name = docker_network.monitoring.name
   }
 
   restart = "unless-stopped"
