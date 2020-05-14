@@ -16,6 +16,7 @@ resource "docker_container" "prometheus" {
     source = "/opt/services/prometheus"
     target = "/etc/prometheus"
     type = "bind"
+    read_only = true
   }
 
   dns = [
@@ -55,6 +56,7 @@ resource "docker_container" "alertmanager" {
     source = "/opt/services/alertmanager/alertmanager.yml"
     target = "/etc/alertmanager/alertmanager.yml"
     type = "bind"
+    read_only = true
   }
 
   networks_advanced {
@@ -65,6 +67,7 @@ resource "docker_container" "alertmanager" {
   must_run = true
 
 }
+
 #### sachet ####
 resource "docker_container" "sachet" {
   name = "sachet"
@@ -74,6 +77,32 @@ resource "docker_container" "sachet" {
   mounts {
     source = "/opt/services/sachet/config.yaml"
     target = "/etc/sachet/config.yaml"
+    type = "bind"
+    read_only = true
+  }
+
+  networks_advanced {
+    name = docker_network.monitoring.name
+  }
+
+  restart = "unless-stopped"
+  must_run = true
+
+}
+
+#### blackbox ####
+resource "docker_image" "blackbox_exporter" {
+  name = "prom/blackbox-exporter"
+}
+
+resource "docker_container" "blackbox_exporter" {
+  name = "blackbox-exporter"
+
+  image = docker_image.blackbox_exporter.name
+
+  mounts {
+    source = "/opt/services/blackbox-exporter/config.yml"
+    target = "/etc/blackbox_exporter/config.yml"
     type = "bind"
     read_only = true
   }
@@ -100,6 +129,10 @@ resource "docker_container" "grafana" {
   name = "grafana"
 
   image = docker_image.grafana.latest
+
+  env = [
+    "GF_INSTALL_PLUGINS=grafana-piechart-panel"
+  ]
 
   labels = {
     "traefik.http.routers.grafana.rule" = "Host(`grafana.ando.arda`)"
