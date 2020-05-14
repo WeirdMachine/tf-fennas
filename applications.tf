@@ -53,7 +53,6 @@ resource "docker_container" "plex" {
     "TZ=Europe/Berlin"
   ]
 
-
   labels = {
     "traefik.http.routers.plex.rule" = "Host(`plex.ando.arda`)"
     "traefik.http.routers.plex.tls" = "true"
@@ -79,8 +78,23 @@ resource "docker_container" "plex" {
     type = "bind"
   }
 
-  network_mode = "host"
+  cpu_shares = "512"
 
+  ports {
+    internal = 1900
+    external = 1900
+    protocol = "udp"
+  }
+
+  ports {
+    internal = 32469
+    external = 32469
+    protocol = "tcp"
+  }
+
+  networks_advanced {
+    name = docker_network.traefik_net.name
+  }
 
   restart = "unless-stopped"
   must_run = true
