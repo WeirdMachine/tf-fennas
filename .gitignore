@@ -30,3 +30,7 @@ override.tf.json
 
 
 secrets.tfvars
+
+.idea/
+terraform.tfstate
+terraform.tfstate.backup
