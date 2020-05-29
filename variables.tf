@@ -1,4 +1,4 @@
-variable "docker_registry_fanya_pw" {
+variable "docker_registry_fanya_secret" {
   type = string
 }
 
