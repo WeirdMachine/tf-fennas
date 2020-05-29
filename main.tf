@@ -20,6 +20,16 @@ resource "null_resource" "flannel" {
   }
 }
 
+data "template_file" "dashboard" {
+  template = file("${path.module}/templates/dashbaord.yaml")
+}
+
+resource "null_resource" "dashboard" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f -<<EOF\n${data.template_file.dashboard.rendered}\nEOF"
+  }
+}
+
 resource "kubernetes_service_account" "admin_user" {
   metadata {
     name = "admin-user"
