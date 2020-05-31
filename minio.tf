@@ -35,6 +35,7 @@ resource "kubernetes_deployment" "minio" {
         max_unavailable = "0"
       }
     }
+
     selector {
       match_labels = {
         k8s-app = "minio"
@@ -48,7 +49,6 @@ resource "kubernetes_deployment" "minio" {
         labels = {
           k8s-app = "minio"
         }
-
       }
       spec {
         service_account_name = "minio"
@@ -103,6 +103,13 @@ resource "kubernetes_deployment" "minio" {
             }
           }
 
+
+          //Todo: jwt token auth
+          env {
+            name = "MINIO_PROMETHEUS_AUTH_TYPE"
+            value = "public"
+          }
+
           liveness_probe {
             http_get {
               path = "/minio/health/live"
@@ -153,6 +160,10 @@ resource "kubernetes_service" "minio" {
     name = "minio"
     labels = {
       k8s-app = "minio"
+    }
+    annotations = {
+      "prometheus.io/scrape" = true,
+      "prometheus.io/path" = "/minio/prometheus/metrics"
     }
   }
 
