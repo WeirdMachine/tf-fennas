@@ -6,9 +6,44 @@ terraform {
     region = "eu-central-1"
   }
 
+  required_providers {
+    docker = "< 2.7.0"
+  }
+
+}
+
+provider "docker" {
+  host = "ssh://ando"
 }
 
 provider "kubernetes" {}
+
+resource "docker_container" "haproxy" {
+  image = "haproxy"
+  name = "haproxy"
+
+
+  ports {
+    internal = 80
+    external = 80
+  }
+
+  ports {
+    internal = 443
+    external = 443
+  }
+
+  mounts {
+    source = "/opt/services/haproxy/"
+    target = "/usr/local/etc/haproxy"
+    type = "bind"
+    read_only = true
+  }
+
+  restart = "unless-stopped"
+  must_run = true
+}
+
 
 data "template_file" "flannel" {
   template = file("${path.module}/templates/flannel.yaml")
@@ -72,6 +107,6 @@ resource "kubernetes_secret" "fanyaregcred" {
   type = "kubernetes.io/dockerconfigjson"
 
   data = {
-    ".dockerconfigjson" =  data.template_file.fanyaregconf.rendered
+    ".dockerconfigjson" = data.template_file.fanyaregconf.rendered
   }
 }
