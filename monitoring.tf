@@ -249,3 +249,100 @@ resource "kubernetes_service" "node_exporter" {
     }
   }
 }
+
+
+resource "kubernetes_deployment" "grafana" {
+  metadata {
+    name = "grafana"
+  }
+
+  spec {
+    selector {
+      match_labels = {
+        k8s-app = "grafana"
+      }
+    }
+    template {
+      metadata {
+        name = "grafana"
+        labels = {
+          k8s-app = "grafana"
+        }
+      }
+      spec {
+        container {
+          name = "grafana"
+          image = "grafana/grafana:latest"
+
+          env {
+            name = "GF_INSTALL_PLUGINS"
+            value = "grafana-piechart-panel,grafana-kubernetes-app"
+          }
+
+          port {
+            name = "grafana"
+            container_port = 3000
+          }
+
+          volume_mount {
+            mount_path = "/var/lib/grafana"
+            name = "grafana-storage"
+          }
+        }
+
+        //Todo: use persistent volume
+        volume {
+          name = "grafana-storage"
+          empty_dir {}
+        }
+      }
+    }
+  }
+}
+
+
+resource "kubernetes_service" "grafana" {
+  metadata {
+    name = "grafana"
+    annotations = {
+      "prometheus.io/scrape" = "true"
+      "prometheus.io/port" = "3000"
+    }
+  }
+
+  spec {
+    selector = {
+      k8s-app = "grafana"
+    }
+
+    port {
+      name = "grafana"
+      port = 3000
+    }
+  }
+}
+
+resource "kubernetes_ingress" "grafana" {
+  metadata {
+    name = "grafana"
+    annotations = {
+      "traefik.ingress.kubernetes.io/router.entrypoints" = "web"
+      //      "traefik.ingress.kubernetes.io/router.tls": "true"
+    }
+  }
+
+  spec {
+    rule {
+      host = "grafana.kube.arda"
+      http {
+        path {
+          path = "/"
+          backend {
+            service_name = "grafana"
+            service_port = "3000"
+          }
+        }
+      }
+    }
+  }
+}
