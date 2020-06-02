@@ -68,10 +68,12 @@ resource "kubernetes_config_map" "prometheus" {
   }
 
   data = {
-    "prometheus.yml" = file("${path.module}/templates/prometheus.yml")
+    "prometheus.yml"   = file("${path.module}/templates/prometheus.yml")
+    "node.rules"       = file("${path.module}/templates/node_rules.yml")
+    "blackbox.rules"   = file("${path.module}/templates/blackbox_rules.yml")
+    "prometheus.rules" = file("${path.module}/templates/prometheus_rules.yml")
   }
 }
-
 
 resource "kubernetes_deployment" "prometheus" {
   metadata {
@@ -127,7 +129,6 @@ resource "kubernetes_deployment" "prometheus" {
             name = "prometheus"
           }
         }
-
       }
     }
   }
@@ -460,9 +461,9 @@ resource "kubernetes_deployment" "blackbox_exporter" {
         }
 
         volume {
-          name = "blackbox"
+          name = "blackbox-exporter"
           config_map {
-            name = "blackbox"
+            name = "blackbox-exporter"
           }
         }
       }
