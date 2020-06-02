@@ -110,3 +110,8 @@ resource "kubernetes_secret" "fanyaregcred" {
     ".dockerconfigjson" = data.template_file.fanyaregconf.rendered
   }
 }
+
+module "monitoring" {
+  source = "./modules/monitoring"
+  telegram_token = var.telegram_token
+}
