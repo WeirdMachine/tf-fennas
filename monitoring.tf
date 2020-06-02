@@ -250,6 +250,65 @@ resource "kubernetes_service" "node_exporter" {
   }
 }
 
+resource "kubernetes_service_account" "alertmanager" {
+  metadata {
+    name = "alertmanager"
+  }
+}
+
+resource "kubernetes_config_map" "alertmanager" {
+  metadata {
+    name = "alertmanager"
+    labels = {
+      k8s-app = "alertmanager"
+    }
+  }
+
+  data = {
+    "alertmanager.yml" = file("${path.module}/templates/alertmanager.yml")
+  }
+}
+
+resource "kubernetes_service" "alertmanager" {
+  metadata {
+    name = "alertmanager"
+    labels = {
+      k8s-app = "alertmanager"
+    }
+  }
+
+  spec {
+    port {
+      name = "http"
+      port = 9093
+      protocol = "TCP"
+    }
+    selector = {
+      k8s-app = "alertmanager"
+    }
+  }
+}
+
+resource "kubernetes_stateful_set" "alertmanager" {
+  metadata {
+    name = "alertmanager"
+    labels = {
+      k8s-app = "alertmanager"
+    }
+  }
+  spec {
+    service_name = "alertmanager"
+    selector {
+      match_labels = {
+        k8s-app = "alertmanager"
+      }
+    }
+    template {
+      metadata {}
+    }
+  }
+}
+
 
 resource "kubernetes_deployment" "grafana" {
   metadata {
@@ -276,7 +335,7 @@ resource "kubernetes_deployment" "grafana" {
 
           env {
             name = "GF_INSTALL_PLUGINS"
-            value = "grafana-piechart-panel,grafana-kubernetes-app"
+            value = "grafana-piechart-panel,devopsprodigy-kubegraf-app"
           }
 
           port {
