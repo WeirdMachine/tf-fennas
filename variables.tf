@@ -1,4 +1,4 @@
-variable "docker_registry_fanya_pw" {
+variable "docker_registry_fanya_secret" {
   type = string
 }
 
@@ -7,5 +7,9 @@ variable "minio_access_key" {
 }
 
 variable "minio_secret_key" {
+  type = string
+}
+
+variable "telegram_token" {
   type = string
 }
