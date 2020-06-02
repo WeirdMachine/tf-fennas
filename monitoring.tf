@@ -354,7 +354,7 @@ resource "kubernetes_deployment" "alertmanager" {
           }
 
           volume_mount {
-            mount_path = "/etc/config"
+            mount_path = "/etc/alertmanager"
             name       = "alertmanager"
           }
         }
@@ -386,7 +386,6 @@ resource "kubernetes_deployment" "alertmanager" {
             name = "sachet"
           }
         }
-
       }
     }
   }
@@ -456,7 +455,7 @@ resource "kubernetes_deployment" "blackbox_exporter" {
 
           volume_mount {
             mount_path = "/etc/blackbox_exporter"
-            name       = "blackbox"
+            name       = "blackbox-exporter"
           }
         }
 
