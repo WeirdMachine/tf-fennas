@@ -9,3 +9,7 @@ variable "minio_access_key" {
 variable "minio_secret_key" {
   type = string
 }
+
+variable "telegram_token" {
+  type = string
+}

@@ -51,4 +51,4 @@ route:
 receivers:
   - name: 'fanya-telegram'
     webhook_configs:
-      - url: 'http://sachet:9876/alert'
+      - url: 'http://localhost:9876/alert'

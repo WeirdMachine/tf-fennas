@@ -269,11 +269,35 @@ resource "kubernetes_config_map" "alertmanager" {
   }
 }
 
+data "template_file" "sachet" {
+  template = file("${path.module}/templates/sachet.tpl")
+  vars = {
+    telegram_token = var.telegram_token
+  }
+}
+
+resource "kubernetes_config_map" "sachet" {
+  metadata {
+    name = "sachet"
+    labels = {
+      k8s-app = "sachet"
+    }
+  }
+
+  data = {
+    "config.yaml" = data.template_file.sachet.rendered
+  }
+}
+
 resource "kubernetes_service" "alertmanager" {
   metadata {
     name = "alertmanager"
     labels = {
       k8s-app = "alertmanager"
+    }
+    annotations = {
+      "prometheus.io/scrape" = "true"
+      "prometheus.io/port" = "9093"
     }
   }
 
@@ -289,7 +313,7 @@ resource "kubernetes_service" "alertmanager" {
   }
 }
 
-resource "kubernetes_stateful_set" "alertmanager" {
+resource "kubernetes_deployment" "alertmanager" {
   metadata {
     name = "alertmanager"
     labels = {
@@ -297,18 +321,75 @@ resource "kubernetes_stateful_set" "alertmanager" {
     }
   }
   spec {
-    service_name = "alertmanager"
     selector {
       match_labels = {
         k8s-app = "alertmanager"
       }
     }
     template {
-      metadata {}
+      metadata {
+        name = "alertmanager"
+        labels = {
+          k8s-app = "alertmanager"
+        }
+      }
+      spec {
+        container {
+          name = "alertmanager"
+          image = "quay.io/prometheus/alertmanager"
+
+          port {
+            container_port = 9093
+            name = "http"
+          }
+
+          readiness_probe {
+            http_get {
+              path = "/#/status"
+              port = "9093"
+            }
+            initial_delay_seconds = 30
+            timeout_seconds = 30
+          }
+
+          volume_mount {
+            mount_path = "/etc/config"
+            name = "alertmanager"
+          }
+        }
+
+        container {
+          name = "sachet"
+          image ="registry.fanya.dev/sachet-arm"
+
+          port {
+            container_port = 9876
+          }
+
+          volume_mount {
+            mount_path = "/etc/sachet/"
+            name = "sachet"
+          }
+        }
+
+        volume {
+          name = "alertmanager"
+          config_map {
+            name = "alertmanager"
+          }
+        }
+
+        volume {
+          name = "sachet"
+          config_map {
+            name = "sachet"
+          }
+        }
+
+      }
     }
   }
 }
-
 
 resource "kubernetes_deployment" "grafana" {
   metadata {
@@ -321,6 +402,7 @@ resource "kubernetes_deployment" "grafana" {
         k8s-app = "grafana"
       }
     }
+
     template {
       metadata {
         name = "grafana"
@@ -328,6 +410,7 @@ resource "kubernetes_deployment" "grafana" {
           k8s-app = "grafana"
         }
       }
+
       spec {
         container {
           name = "grafana"
@@ -349,10 +432,12 @@ resource "kubernetes_deployment" "grafana" {
           }
         }
 
-        //Todo: use persistent volume
         volume {
           name = "grafana-storage"
-          empty_dir {}
+          glusterfs {
+            endpoints_name = "glusterfs-cluster"
+            path = "grafana"
+          }
         }
       }
     }
