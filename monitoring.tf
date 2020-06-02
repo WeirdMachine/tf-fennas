@@ -11,17 +11,17 @@ resource "kubernetes_cluster_role" "prometheus" {
 
   rule {
     api_groups = [
-      ""]
+    ""]
     resources = [
       "nodes",
       "nodes/proxy",
       "services",
       "endpoints",
-      "pods"]
+    "pods"]
     verbs = [
       "get",
       "list",
-      "watch"]
+    "watch"]
   }
 
   rule {
@@ -34,14 +34,14 @@ resource "kubernetes_cluster_role" "prometheus" {
     verbs = [
       "get",
       "list",
-      "watch"]
+    "watch"]
   }
 
   rule {
     non_resource_urls = [
-      "/metrics"]
+    "/metrics"]
     verbs = [
-      "get"]
+    "get"]
   }
 
 }
@@ -52,8 +52,8 @@ resource "kubernetes_cluster_role_binding" "prometheus" {
   }
   role_ref {
     api_group = "rbac.authorization.k8s.io"
-    kind = "ClusterRole"
-    name = "prometheus"
+    kind      = "ClusterRole"
+    name      = "prometheus"
   }
   subject {
     kind = "ServiceAccount"
@@ -78,7 +78,7 @@ resource "kubernetes_deployment" "prometheus" {
     name = "prometheus"
 
     labels = {
-      k8s-app: "prometheus"
+      k8s-app : "prometheus"
     }
   }
 
@@ -99,11 +99,11 @@ resource "kubernetes_deployment" "prometheus" {
         }
       }
       spec {
-        service_account_name = "prometheus"
+        service_account_name            = "prometheus"
         automount_service_account_token = true
 
         container {
-          name = "prometheus"
+          name  = "prometheus"
           image = "prom/prometheus"
 
           args = [
@@ -111,12 +111,12 @@ resource "kubernetes_deployment" "prometheus" {
           ]
 
           port {
-            name = "web"
+            name           = "web"
             container_port = 9090
           }
 
           volume_mount {
-            name = "prometheus-conf"
+            name       = "prometheus-conf"
             mount_path = "/etc/prometheus"
           }
         }
@@ -150,9 +150,9 @@ resource "kubernetes_service" "prometheus" {
     }
 
     port {
-      name = "prometheus"
+      name     = "prometheus"
       protocol = "TCP"
-      port = 9090
+      port     = 9090
     }
 
   }
@@ -204,22 +204,22 @@ resource "kubernetes_daemonset" "node_exporter" {
 
       spec {
         toleration {
-          key = "node-role.kubernetes.io/master"
+          key    = "node-role.kubernetes.io/master"
           effect = "NoSchedule"
         }
 
         container {
-          name = "node-exporter"
+          name  = "node-exporter"
           image = "prom/node-exporter"
 
           port {
             container_port = 9100
-            host_port = 9100
-            name = "scrape"
+            host_port      = 9100
+            name           = "scrape"
           }
         }
 
-        host_pid = true
+        host_pid     = true
         host_network = true
       }
     }
@@ -239,8 +239,8 @@ resource "kubernetes_service" "node_exporter" {
   spec {
     cluster_ip = "None"
     port {
-      name = "scrape"
-      port = 9100
+      name     = "scrape"
+      port     = 9100
       protocol = "TCP"
     }
 
@@ -297,14 +297,14 @@ resource "kubernetes_service" "alertmanager" {
     }
     annotations = {
       "prometheus.io/scrape" = "true"
-      "prometheus.io/port" = "9093"
+      "prometheus.io/port"   = "9093"
     }
   }
 
   spec {
     port {
-      name = "http"
-      port = 9093
+      name     = "http"
+      port     = 9093
       protocol = "TCP"
     }
     selector = {
@@ -335,12 +335,12 @@ resource "kubernetes_deployment" "alertmanager" {
       }
       spec {
         container {
-          name = "alertmanager"
+          name  = "alertmanager"
           image = "quay.io/prometheus/alertmanager"
 
           port {
             container_port = 9093
-            name = "http"
+            name           = "http"
           }
 
           readiness_probe {
@@ -349,18 +349,18 @@ resource "kubernetes_deployment" "alertmanager" {
               port = "9093"
             }
             initial_delay_seconds = 30
-            timeout_seconds = 30
+            timeout_seconds       = 30
           }
 
           volume_mount {
             mount_path = "/etc/config"
-            name = "alertmanager"
+            name       = "alertmanager"
           }
         }
 
         container {
-          name = "sachet"
-          image ="registry.fanya.dev/sachet-arm"
+          name  = "sachet"
+          image = "registry.fanya.dev/sachet-arm"
 
           port {
             container_port = 9876
@@ -368,7 +368,7 @@ resource "kubernetes_deployment" "alertmanager" {
 
           volume_mount {
             mount_path = "/etc/sachet/"
-            name = "sachet"
+            name       = "sachet"
           }
         }
 
@@ -386,6 +386,85 @@ resource "kubernetes_deployment" "alertmanager" {
           }
         }
 
+      }
+    }
+  }
+}
+
+resource "kubernetes_config_map" "blackbox_exporter" {
+  metadata {
+    name = "blackbox-exporter"
+    labels = {
+      k8s-app = "blackbox-exporter"
+    }
+  }
+
+  data = {
+    "config.yml" = file("${path.module}/templates/balckbox_exporter.yml")
+  }
+}
+
+resource "kubernetes_service" "blackbox_exporter" {
+  metadata {
+    name = "blackbox-exporter"
+    labels = {
+      k8s-app = "blackbox-exporter"
+    }
+  }
+  spec {
+    port {
+      port = 9115
+    }
+
+    selector = {
+      k8s-app = "blackbox-exporter"
+    }
+  }
+}
+
+resource "kubernetes_deployment" "blackbox_exporter" {
+  metadata {
+    name = "blackbox-exporter"
+    labels = {
+      k8s-app = "blackbox-exporter"
+    }
+  }
+  spec {
+    selector {
+      match_labels = {
+        k8s-app = "blackbox-exporter"
+      }
+    }
+
+    template {
+      metadata {
+        name = "blackbox-exporter"
+        labels = {
+          k8s-app = "blackbox-exporter"
+        }
+      }
+
+      spec {
+        container {
+          name  = "blackbox-exporter"
+          image = "prom/blackbox-exporter"
+
+          port {
+            container_port = 9115
+          }
+
+          volume_mount {
+            mount_path = "/etc/blackbox_exporter"
+            name       = "blackbox"
+          }
+        }
+
+        volume {
+          name = "blackbox"
+          config_map {
+            name = "blackbox"
+          }
+        }
       }
     }
   }
@@ -413,22 +492,22 @@ resource "kubernetes_deployment" "grafana" {
 
       spec {
         container {
-          name = "grafana"
+          name  = "grafana"
           image = "grafana/grafana:latest"
 
           env {
-            name = "GF_INSTALL_PLUGINS"
+            name  = "GF_INSTALL_PLUGINS"
             value = "grafana-piechart-panel,devopsprodigy-kubegraf-app"
           }
 
           port {
-            name = "grafana"
+            name           = "grafana"
             container_port = 3000
           }
 
           volume_mount {
             mount_path = "/var/lib/grafana"
-            name = "grafana-storage"
+            name       = "grafana-storage"
           }
         }
 
@@ -436,7 +515,7 @@ resource "kubernetes_deployment" "grafana" {
           name = "grafana-storage"
           glusterfs {
             endpoints_name = "glusterfs-cluster"
-            path = "grafana"
+            path           = "grafana"
           }
         }
       }
@@ -450,7 +529,7 @@ resource "kubernetes_service" "grafana" {
     name = "grafana"
     annotations = {
       "prometheus.io/scrape" = "true"
-      "prometheus.io/port" = "3000"
+      "prometheus.io/port"   = "3000"
     }
   }
 
