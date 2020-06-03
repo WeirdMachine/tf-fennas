@@ -55,40 +55,14 @@ resource "null_resource" "flannel" {
   }
 }
 
-data "template_file" "dashboard" {
-  template = file("${path.module}/templates/dashbaord.yaml")
+module "dashboard" {
+  source = "./modules/dashboard"
 }
 
-
-resource "null_resource" "dashboard" {
-  provisioner "local-exec" {
-    command = "kubectl apply -f -<<EOF\n${data.template_file.dashboard.rendered}\nEOF"
-  }
-}
-
-resource "kubernetes_service_account" "admin_user" {
-  metadata {
-    name      = "admin-user"
-    namespace = "kubernetes-dashboard"
-  }
-}
-
-resource "kubernetes_cluster_role_binding" "admin_user" {
-  metadata {
-    name = "admin-user"
-  }
-
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "ClusterRole"
-    name      = "cluster-admin"
-  }
-
-  subject {
-    kind      = "ServiceAccount"
-    name      = "admin-user"
-    namespace = "kubernetes-dashboard"
-  }
+module "minio" {
+  source           = "./modules/minio"
+  minio_access_key = var.minio_access_key
+  minio_secret_key = var.minio_secret_key
 }
 
 module "monitoring" {
