@@ -88,7 +88,6 @@ resource "kubernetes_deployment" "prometheus" {
     }
   }
 
-
   spec {
     replicas = 1
     selector {
@@ -106,6 +105,17 @@ resource "kubernetes_deployment" "prometheus" {
         }
       }
       spec {
+
+        //deploy on master node due to vpn access
+        node_selector = {
+          "kubernetes.io/hostname" = "ando.arda"
+        }
+
+        toleration {
+          key    = "node-role.kubernetes.io/master"
+          effect = "NoSchedule"
+        }
+
         service_account_name            = "prometheus"
         automount_service_account_token = true
 
