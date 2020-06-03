@@ -1,6 +1,6 @@
 resource "null_resource" "dashboard" {
   provisioner "local-exec" {
-    command = "kubectl apply -f -<<EOF\n${file("${path.module}/files/prometheus.yml")}\nEOF"
+    command = "kubectl apply -f -<<EOF\n${file("${path.module}/files/dashbaord.yml")}\nEOF"
   }
 }
 
