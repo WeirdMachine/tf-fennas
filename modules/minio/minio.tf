@@ -9,7 +9,7 @@ resource "kubernetes_secret" "minio" {
   metadata {
     name = "minio"
     labels = {
-      k8s-app: "minio"
+      k8s-app : "minio"
     }
   }
   type = "Opaque"
@@ -23,7 +23,7 @@ resource "kubernetes_deployment" "minio" {
   metadata {
     name = "minio"
     labels = {
-      k8s-app: "minio"
+      k8s-app : "minio"
     }
   }
 
@@ -31,7 +31,7 @@ resource "kubernetes_deployment" "minio" {
     strategy {
       type = "RollingUpdate"
       rolling_update {
-        max_surge = "100%"
+        max_surge       = "100%"
         max_unavailable = "0"
       }
     }
@@ -55,8 +55,8 @@ resource "kubernetes_deployment" "minio" {
 
         security_context {
           run_as_group = 1000
-          run_as_user = 1000
-          fs_group = 1000
+          run_as_user  = 1000
+          fs_group     = 1000
         }
 
         image_pull_secrets {
@@ -64,7 +64,7 @@ resource "kubernetes_deployment" "minio" {
         }
 
         container {
-          name = "minio"
+          name  = "minio"
           image = "registry.fanya.dev/minio-arm"
 
           command = [
@@ -74,12 +74,12 @@ resource "kubernetes_deployment" "minio" {
           ]
 
           volume_mount {
-            name = "export"
+            name       = "export"
             mount_path = "/export"
           }
 
           port {
-            name = "http"
+            name           = "http"
             container_port = 9000
           }
 
@@ -88,7 +88,7 @@ resource "kubernetes_deployment" "minio" {
             value_from {
               secret_key_ref {
                 name = "minio"
-                key = "accesskey"
+                key  = "accesskey"
               }
             }
           }
@@ -98,7 +98,7 @@ resource "kubernetes_deployment" "minio" {
             value_from {
               secret_key_ref {
                 name = "minio"
-                key = "secretkey"
+                key  = "secretkey"
               }
             }
           }
@@ -106,20 +106,20 @@ resource "kubernetes_deployment" "minio" {
 
           //Todo: jwt token auth
           env {
-            name = "MINIO_PROMETHEUS_AUTH_TYPE"
+            name  = "MINIO_PROMETHEUS_AUTH_TYPE"
             value = "public"
           }
 
           liveness_probe {
             http_get {
-              path = "/minio/health/live"
-              port = "http"
+              path   = "/minio/health/live"
+              port   = "http"
               scheme = "HTTP"
             }
             initial_delay_seconds = 5
-            period_seconds = 30
-            success_threshold = 1
-            failure_threshold = 3
+            period_seconds        = 30
+            success_threshold     = 1
+            failure_threshold     = 3
           }
 
           readiness_probe {
@@ -128,15 +128,15 @@ resource "kubernetes_deployment" "minio" {
               port = "http"
             }
             initial_delay_seconds = 60
-            period_seconds = 15
-            timeout_seconds = 1
-            success_threshold = 1
-            failure_threshold = 3
+            period_seconds        = 15
+            timeout_seconds       = 1
+            success_threshold     = 1
+            failure_threshold     = 3
           }
 
           resources {
             requests {
-              cpu = "250m"
+              cpu    = "250m"
               memory = "256Mi"
             }
           }
@@ -146,7 +146,7 @@ resource "kubernetes_deployment" "minio" {
           name = "export"
           glusterfs {
             endpoints_name = "glusterfs-cluster"
-            path = "minio"
+            path           = "minio"
           }
         }
 
@@ -163,15 +163,15 @@ resource "kubernetes_service" "minio" {
     }
     annotations = {
       "prometheus.io/scrape" = true,
-      "prometheus.io/path" = "/minio/prometheus/metrics"
+      "prometheus.io/path"   = "/minio/prometheus/metrics"
     }
   }
 
   spec {
     port {
-      name = "http"
-      port = 9000
-      protocol = "TCP"
+      name        = "http"
+      port        = 9000
+      protocol    = "TCP"
       target_port = 9000
     }
     selector = {
@@ -186,7 +186,7 @@ resource "kubernetes_ingress" "minio" {
     name = "minio"
     annotations = {
       "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
-      "traefik.ingress.kubernetes.io/router.tls": "true"
+      "traefik.ingress.kubernetes.io/router.tls" : "true"
     }
   }
 
