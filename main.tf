@@ -2,7 +2,7 @@ terraform {
 
   backend "s3" {
     bucket = "hb-wolke-edda"
-    key = "terraform/fennas/terraform.tfstate"
+    key    = "terraform/fennas/terraform.tfstate"
     region = "eu-central-1"
   }
 
@@ -13,14 +13,14 @@ terraform {
 }
 
 provider "docker" {
-  host = "ssh://ando"
+  host = "ssh://192.168.2.10"
 }
 
 provider "kubernetes" {}
 
 resource "docker_container" "haproxy" {
   image = "haproxy"
-  name = "haproxy"
+  name  = "haproxy"
 
 
   ports {
@@ -34,13 +34,13 @@ resource "docker_container" "haproxy" {
   }
 
   mounts {
-    source = "/opt/services/haproxy/"
-    target = "/usr/local/etc/haproxy"
-    type = "bind"
+    source    = "/opt/services/haproxy/"
+    target    = "/usr/local/etc/haproxy"
+    type      = "bind"
     read_only = true
   }
 
-  restart = "unless-stopped"
+  restart  = "unless-stopped"
   must_run = true
 }
 
@@ -68,7 +68,7 @@ resource "null_resource" "dashboard" {
 
 resource "kubernetes_service_account" "admin_user" {
   metadata {
-    name = "admin-user"
+    name      = "admin-user"
     namespace = "kubernetes-dashboard"
   }
 }
@@ -80,38 +80,18 @@ resource "kubernetes_cluster_role_binding" "admin_user" {
 
   role_ref {
     api_group = "rbac.authorization.k8s.io"
-    kind = "ClusterRole"
-    name = "cluster-admin"
+    kind      = "ClusterRole"
+    name      = "cluster-admin"
   }
 
   subject {
-    kind = "ServiceAccount"
-    name = "admin-user"
+    kind      = "ServiceAccount"
+    name      = "admin-user"
     namespace = "kubernetes-dashboard"
   }
 }
 
-
-data "template_file" "fanyaregconf" {
-  template = file("${path.module}/templates/fanyaregconf.tpl")
-  vars = {
-    auth_string = var.docker_registry_fanya_secret
-  }
-}
-
-resource "kubernetes_secret" "fanyaregcred" {
-  metadata {
-    name = "fanyaregcred"
-  }
-
-  type = "kubernetes.io/dockerconfigjson"
-
-  data = {
-    ".dockerconfigjson" = data.template_file.fanyaregconf.rendered
-  }
-}
-
 module "monitoring" {
-  source = "./modules/monitoring"
+  source         = "./modules/monitoring"
   telegram_token = var.telegram_token
 }

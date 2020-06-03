@@ -1,7 +1,3 @@
-variable "docker_registry_fanya_secret" {
-  type = string
-}
-
 variable "minio_access_key" {
   type = string
 }
