@@ -46,6 +46,13 @@ module "minio" {
   source           = "./modules/minio"
   minio_access_key = var.minio_access_key
   minio_secret_key = var.minio_secret_key
+  namespace        = "infra"
+}
+
+module "vault" {
+  source = "./modules/vault"
+  vault_access_key = var.vault_access_key
+  vault_secret_key = var.vault_secret_key
   namespace = "infra"
 }
 
