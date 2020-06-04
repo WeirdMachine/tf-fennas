@@ -1,6 +1,7 @@
 resource "kubernetes_endpoints" "glusterfs_cluster" {
   metadata {
-    name = "glusterfs-cluster"
+    name      = "glusterfs-cluster"
+    namespace = var.namespace
   }
 
   subset {
@@ -27,7 +28,8 @@ resource "kubernetes_endpoints" "glusterfs_cluster" {
 
 resource "kubernetes_service" "glusterfs_cluster" {
   metadata {
-    name = "glusterfs-cluster"
+    name      = "glusterfs-cluster"
+    namespace = var.namespace
   }
   spec {
     port {

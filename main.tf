@@ -26,6 +26,11 @@ module "dashboard" {
   source = "./modules/dashboard"
 }
 
+module "gluster" {
+  source    = "./modules/gluster"
+  namespace = "default"
+}
+
 module "minio" {
   source           = "./modules/minio"
   minio_access_key = var.minio_access_key
