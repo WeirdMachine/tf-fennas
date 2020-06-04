@@ -1,13 +1,15 @@
 resource "kubernetes_service_account" "minio" {
   metadata {
-    name = "minio"
+    name      = "minio"
+    namespace = var.namespace
   }
 }
 
 
 resource "kubernetes_secret" "minio" {
   metadata {
-    name = "minio"
+    name      = "minio"
+    namespace = var.namespace
     labels = {
       k8s-app : "minio"
     }
@@ -19,28 +21,23 @@ resource "kubernetes_secret" "minio" {
   }
 }
 
-resource "kubernetes_deployment" "minio" {
+resource "kubernetes_stateful_set" "minio" {
   metadata {
-    name = "minio"
+    name      = "minio"
+    namespace = var.namespace
     labels = {
       k8s-app : "minio"
     }
   }
 
   spec {
-    strategy {
-      type = "RollingUpdate"
-      rolling_update {
-        max_surge       = "100%"
-        max_unavailable = "0"
-      }
-    }
 
     selector {
       match_labels = {
         k8s-app = "minio"
       }
     }
+    service_name = "minio"
 
     template {
 
@@ -57,10 +54,6 @@ resource "kubernetes_deployment" "minio" {
           run_as_group = 1000
           run_as_user  = 1000
           fs_group     = 1000
-        }
-
-        image_pull_secrets {
-          name = "fanyaregcred"
         }
 
         container {
@@ -157,7 +150,8 @@ resource "kubernetes_deployment" "minio" {
 
 resource "kubernetes_service" "minio" {
   metadata {
-    name = "minio"
+    name      = "minio"
+    namespace = var.namespace
     labels = {
       k8s-app = "minio"
     }
@@ -183,10 +177,11 @@ resource "kubernetes_service" "minio" {
 
 resource "kubernetes_ingress" "minio" {
   metadata {
-    name = "minio"
+    name      = "minio"
+    namespace = var.namespace
     annotations = {
-      "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
-      "traefik.ingress.kubernetes.io/router.tls" : "true"
+      "traefik.ingress.kubernetes.io/router.entrypoints" = "web"
+      //      "traefik.ingress.kubernetes.io/router.tls" : "true"
     }
   }
 

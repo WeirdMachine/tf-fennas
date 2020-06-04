@@ -26,15 +26,27 @@ module "dashboard" {
   source = "./modules/dashboard"
 }
 
-module "gluster" {
+resource "kubernetes_namespace" "infrastructure" {
+  metadata {
+    name = "infra"
+  }
+}
+
+module "gluster-default" {
   source    = "./modules/gluster"
   namespace = "default"
+}
+
+module "gluster-infra" {
+  source    = "./modules/gluster"
+  namespace = "infra"
 }
 
 module "minio" {
   source           = "./modules/minio"
   minio_access_key = var.minio_access_key
   minio_secret_key = var.minio_secret_key
+  namespace = "infra"
 }
 
 module "monitoring" {
