@@ -273,7 +273,10 @@ resource "kubernetes_stateful_set" "vault" {
 
           readiness_probe {
             exec {
-              command = ["/bin/sh", "-ec", "vault status -tls-skip-verify"]
+              command = [
+                "/bin/sh",
+                "-ec",
+              "vault status -tls-skip-verify"]
             }
             failure_threshold     = 2
             initial_delay_seconds = 5
@@ -285,7 +288,8 @@ resource "kubernetes_stateful_set" "vault" {
             pre_stop {
               exec {
                 command = [
-                  "/bin/sh", "-c",
+                  "/bin/sh",
+                  "-c",
                   # Adding a sleep here to give the pod eviction a
                   # chance to propagate, so requests will not be made
                   # to this pod while it's terminating

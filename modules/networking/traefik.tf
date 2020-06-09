@@ -10,7 +10,8 @@ resource "kubernetes_cluster_role" "traefik_ingress_controller" {
   }
 
   rule {
-    api_groups = [""]
+    api_groups = [
+    ""]
     resources = [
       "services",
       "endpoints",

@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: vault-issuer
+  namespace: cert-manager
+spec:
+  vault:
+    path: pki_kube/sign/kube-dot-arda
+    server: "http://vault.infra.svc:8200"
+    #    caBundle: <base64 encoded caBundle PEM file>
+    auth:
+      kubernetes:
+        role: my-app-1
+        mountPath: /v1/auth/kubernetes
+        secretRef:
+          name: my-service-account-token-hvwsb
+          key: token

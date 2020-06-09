@@ -16,9 +16,15 @@ resource "kubernetes_cluster_role" "vault_agent_injector_clusterrole" {
     }
   }
   rule {
-    api_groups = ["admissionregistration.k8s.io"]
-    resources  = ["mutatingwebhookconfigurations"]
-    verbs      = ["get", "list", "watch", "patch"]
+    api_groups = [
+    "admissionregistration.k8s.io"]
+    resources = [
+    "mutatingwebhookconfigurations"]
+    verbs = [
+      "get",
+      "list",
+      "watch",
+    "patch"]
   }
 }
 
@@ -167,7 +173,9 @@ resource "kubernetes_deployment" "vault_agent_injector" {
             value = "false"
           }
 
-          args = ["agent-inject", "2>&1"]
+          args = [
+            "agent-inject",
+          "2>&1"]
 
           liveness_probe {
             http_get {

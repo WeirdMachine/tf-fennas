@@ -1,4 +1,3 @@
-
 resource "kubernetes_deployment" "grafana" {
   metadata {
     name      = "grafana"

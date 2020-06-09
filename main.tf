@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "docker" {
-  host = "ssh://192.168.2.10"
+  host = "ssh://192.168.4.10"
 }
 
 provider "kubernetes" {}
@@ -50,13 +50,17 @@ module "minio" {
 }
 
 module "vault" {
-  source = "./modules/vault"
+  source           = "./modules/vault"
   vault_access_key = var.vault_access_key
   vault_secret_key = var.vault_secret_key
-  namespace = "infra"
+  namespace        = "infra"
 }
 
 module "monitoring" {
   source         = "./modules/monitoring"
   telegram_token = var.telegram_token
+}
+
+module "openfaas" {
+  source = "./modules/openfaas"
 }

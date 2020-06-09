@@ -1,4 +1,3 @@
-
 resource "kubernetes_config_map" "blackbox_exporter" {
   metadata {
     name      = "blackbox-exporter"

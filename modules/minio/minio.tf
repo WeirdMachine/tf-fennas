@@ -96,7 +96,6 @@ resource "kubernetes_stateful_set" "minio" {
             }
           }
 
-
           //Todo: jwt token auth
           env {
             name  = "MINIO_PROMETHEUS_AUTH_TYPE"
@@ -144,6 +143,9 @@ resource "kubernetes_stateful_set" "minio" {
         }
 
       }
+    }
+    update_strategy {
+      type = "RollingUpdate"
     }
   }
 }
