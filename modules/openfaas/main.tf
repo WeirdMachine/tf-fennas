@@ -23,11 +23,6 @@ resource "helm_release" "openfaas" {
     value = "true"
   }
 
-  set {
-    name  = ""
-    value = ""
-  }
-
   values = [
     file("${path.module}/files/values-armhf.yml")
   ]
